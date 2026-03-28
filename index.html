@@ -288,10 +288,10 @@ async function apiPost(action,data){const r=await fetch(`${API}?action=${action}
 async function loadData() {
   state.loading=true; render();
   try {
-    await apiGet("setup");
-    const [hR,cR] = await Promise.all([apiGet("getHabits"),apiGet("getCompletions")]);
-    state.habits=hR.habits||[]; state.completions=cR.completions||{};
-  } catch(e){showToast("Bağlantı hatası!");}
+    const r = await apiGet("getAll");
+    state.habits = r.habits || [];
+    state.completions = r.completions || {};
+  } catch(e){ showToast("Bağlantı hatası!"); }
   state.loading=false; render();
 }
 
@@ -299,7 +299,7 @@ async function addHabit(name,note) {
   const colorIdx=state.habits.length%COLORS.length;
   const h={id:Date.now().toString(),name,note:note||"",colorIdx};
   state.habits.push(h); state.showAdd=false; render();
-  await apiPost("addHabit",h);
+  await apiPost("addHabit",{...h, apiKey:"hfk04"});
   showToast(`"${name}" eklendi! 🎯`);
 }
 
@@ -309,7 +309,7 @@ async function deleteHabit(id) {
   delete state.completions[id];
   if(state.calSelected===id)state.calSelected=null;
   render();
-  await apiGet("deleteHabit",`&id=${id}`);
+  await apiGet("deleteHabit",`&id=${id}&apiKey=hfk04`);
   showToast("Silindi.");
 }
 
@@ -318,7 +318,7 @@ async function toggleDay(habitId,dateStr) {
   const adding=!prev.includes(dateStr);
   state.completions[habitId]=adding?[...prev,dateStr]:prev.filter(d=>d!==dateStr);
   render();
-  await apiPost("toggleCompletion",{habitId,date:dateStr});
+  await apiPost("toggleCompletion",{habitId,date:dateStr,apiKey:"hfk04"});
   if(adding)showToast(getMotiv(calcStreak(state.completions[habitId])));
 }
 
