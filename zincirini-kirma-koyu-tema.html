@@ -1,0 +1,955 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zincirini Kırma</title>
+  <style>
+    :root{
+      --bg:#0b0d10;
+      --panel:#111418;
+      --panel-2:#151a20;
+      --panel-3:#1a2027;
+      --text:#eef2f7;
+      --muted:#8b96a7;
+      --line:#252c35;
+      --line-2:#2f3742;
+      --shadow:0 18px 40px rgba(0,0,0,.32);
+      --radius:26px;
+      --accent:#f8fafc;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.04), transparent 30%),
+        linear-gradient(180deg,#0a0c0f 0%, #0d1116 100%);
+      color:var(--text);
+      overflow:hidden;
+    }
+    .app{
+      max-width:1380px;
+      height:100vh;
+      margin:0 auto;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .topbar{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:12px;
+      min-height:126px;
+      flex:0 0 auto;
+    }
+    .hero,.summary,.panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .hero{
+      padding:20px 22px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.06), transparent 34%),
+        linear-gradient(135deg,#11161d 0%,#0f1318 100%);
+    }
+    .eyebrow{
+      color:#96a3b7;
+      font-size:12px;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      font-weight:700;
+    }
+    .hero h1{
+      margin:0;
+      font-size:34px;
+      line-height:1;
+      letter-spacing:-.045em;
+      font-weight:800;
+    }
+    .hero p{
+      margin:12px 0 0;
+      color:#9aa5b4;
+      line-height:1.5;
+      max-width:760px;
+      font-size:14px;
+    }
+    .summary{
+      padding:12px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      align-items:stretch;
+    }
+    .metric{
+      background:linear-gradient(180deg,#141920 0%, #12171d 100%);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      min-height:96px;
+    }
+    .metric .label{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+      letter-spacing:.03em;
+    }
+    .metric .value{
+      font-size:28px;
+      font-weight:800;
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 370px 1fr;
+      gap:12px;
+      min-height:0;
+      flex:1 1 auto;
+      overflow:hidden;
+    }
+    .sidebar,.calendar-panel{
+      min-height:0;
+      overflow:hidden;
+    }
+    .sidebar{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .date-switcher{
+      background:linear-gradient(180deg,#151a20 0%, #12171d 100%);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:12px;
+      display:grid;
+      grid-template-columns:44px 1fr 44px;
+      gap:10px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+    button{font:inherit}
+    .arrow-btn,.ghost-btn,.primary-btn,.month-btn{
+      border:none;
+      cursor:pointer;
+      transition:.18s ease;
+      outline:none;
+    }
+    .arrow-btn,.month-btn,.ghost-btn{
+      background:#171c23;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    .arrow-btn{
+      width:44px;height:44px;border-radius:14px;font-size:22px;
+    }
+    .arrow-btn:hover,.ghost-btn:hover,.month-btn:hover,.primary-btn:hover{
+      transform:translateY(-1px);
+      border-color:#3c4653;
+    }
+    .date-center{text-align:center;min-width:0}
+    .date-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+    .date-title{
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:-.04em;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .date-sub{margin-top:4px;font-size:12px;color:var(--muted)}
+
+    .sidebar-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex:0 0 auto;
+    }
+    .sidebar-title{
+      font-size:21px;
+      font-weight:800;
+      letter-spacing:-.04em;
+    }
+    .primary-btn{
+      background:#edf2f7;
+      color:#0b0d10;
+      border-radius:14px;
+      height:40px;
+      padding:0 14px;
+      font-weight:800;
+    }
+    .ghost-btn{
+      border-radius:14px;
+      height:40px;
+      padding:0 14px;
+      color:var(--text);
+      font-weight:700;
+    }
+
+    .habit-list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height:0;
+      overflow:auto;
+      padding-right:2px;
+    }
+    .habit-list::-webkit-scrollbar,
+    .calendar-panel::-webkit-scrollbar{width:8px;height:8px}
+    .habit-list::-webkit-scrollbar-thumb,
+    .calendar-panel::-webkit-scrollbar-thumb{
+      background:#2a313b;border-radius:999px;
+    }
+
+    .habit-row{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#141920 0%, #12171d 100%);
+      border-radius:20px;
+      padding:12px 14px;
+      display:grid;
+      grid-template-columns:32px 1fr auto;
+      gap:12px;
+      align-items:center;
+      transition:.18s ease;
+      min-height:68px;
+    }
+    .habit-row:hover{
+      transform:translateY(-1px);
+      border-color:#394351;
+      box-shadow:0 12px 22px rgba(0,0,0,.18);
+    }
+    .habit-row.done{
+      background:linear-gradient(180deg,#171d24 0%, #131920 100%);
+    }
+    .habit-check{
+      width:24px;height:24px;border-radius:999px;border:2px solid #4a5565;background:#11161d;
+      display:flex;align-items:center;justify-content:center;
+      transition:.18s ease;flex:0 0 auto;cursor:pointer;color:#0b0d10;
+      font-size:13px;font-weight:900;
+    }
+    .habit-check.square{border-radius:8px}
+    .habit-row.done .habit-check{border-color:transparent;color:#fff}
+    .habit-name{font-weight:760;font-size:15px;letter-spacing:-.01em}
+    .habit-note{
+      margin-top:4px;font-size:12px;color:var(--muted);line-height:1.35;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;
+    }
+    .habit-meta{
+      display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+    }
+    .color-pill{width:12px;height:12px;border-radius:999px}
+    .delete-btn{
+      border:none;background:transparent;cursor:pointer;color:#6b7482;font-size:19px;line-height:1;
+      padding:2px 5px;border-radius:10px;
+    }
+    .delete-btn:hover{background:#1d232b;color:#fff}
+    .empty{
+      border:1px dashed #35404d;
+      border-radius:20px;
+      padding:24px 16px;
+      text-align:center;
+      color:var(--muted);
+      background:#12171d;
+    }
+
+    .calendar-panel{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      overflow:auto;
+    }
+    .calendar-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      flex:0 0 auto;
+    }
+    .calendar-title h2{
+      margin:0;
+      font-size:30px;
+      letter-spacing:-.045em;
+      line-height:1;
+      font-weight:800;
+    }
+    .calendar-title p{
+      margin:7px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+    .calendar-controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .month-btn{
+      border-radius:14px;
+      height:40px;
+      min-width:40px;
+      padding:0 14px;
+      font-weight:800;
+    }
+
+    .weekday-row,.calendar-grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:8px;
+    }
+    .weekday{
+      background:#141920;
+      border:1px solid var(--line);
+      border-radius:16px;
+      text-align:center;
+      padding:10px 8px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+    .calendar-grid{
+      flex:1 1 auto;
+      align-content:start;
+    }
+    .day-cell{
+      min-height:88px;
+      border-radius:20px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#141920 0%, #11161c 100%);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      position:relative;
+      transition:.18s ease;
+      overflow:hidden;
+      cursor:pointer;
+    }
+    .day-cell:hover{
+      transform:translateY(-1px);
+      border-color:#3a4451;
+      box-shadow:0 12px 24px rgba(0,0,0,.18);
+    }
+    .day-cell.other-month{
+      background:#10141a;
+      color:#556070;
+      opacity:.55;
+    }
+    .day-cell.selected-day{box-shadow:inset 0 0 0 2px #edf2f733}
+    .day-cell.today{box-shadow:inset 0 0 0 2px #edf2f7}
+    .day-number{
+      font-size:24px;
+      font-weight:850;
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+    .day-lines{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-height:28px;
+      justify-content:flex-end;
+      align-items:flex-start;
+    }
+    .mark-line{
+      height:6px;
+      border-radius:999px;
+      box-shadow:0 1px 2px rgba(0,0,0,.25);
+    }
+    .mark-more{
+      font-size:10px;
+      color:#a4afbd;
+      font-weight:800;
+      background:#1a2027;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:2px 6px;
+    }
+    .legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      flex:0 0 auto;
+    }
+    .legend-item{
+      display:flex;align-items:center;gap:8px;
+      background:#141920;border:1px solid var(--line);
+      padding:9px 11px;border-radius:999px;font-size:12px;color:#c8d0da;
+    }
+    .legend-line{
+      width:20px;height:6px;border-radius:999px;
+    }
+
+    .modal-backdrop{
+      position:fixed; inset:0; background:rgba(4,6,9,.6);
+      display:none; align-items:center; justify-content:center;
+      padding:18px; z-index:100;
+      backdrop-filter: blur(8px);
+    }
+    .modal-backdrop.open{display:flex}
+    .modal{
+      width:min(540px,100%);
+      background:linear-gradient(180deg,#141920 0%, #11161c 100%);
+      border-radius:26px;
+      border:1px solid var(--line);
+      box-shadow:0 24px 50px rgba(0,0,0,.4);
+      padding:20px;
+    }
+    .modal h3{
+      margin:0 0 16px;
+      font-size:28px;
+      letter-spacing:-.04em;
+    }
+    .field{margin-bottom:12px}
+    .field label{
+      display:block;
+      margin-bottom:8px;
+      font-size:13px;
+      font-weight:700;
+      color:#d7dee8;
+    }
+    .field input{
+      width:100%;
+      height:48px;
+      border:1px solid var(--line-2);
+      border-radius:16px;
+      padding:0 14px;
+      font:inherit;
+      outline:none;
+      background:#0f1318;
+      color:var(--text);
+    }
+    .field input:focus{border-color:#596475; box-shadow:0 0 0 4px rgba(148,163,184,.12)}
+    .color-row{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .color-btn{
+      width:34px;height:34px;border-radius:999px;border:3px solid transparent;cursor:pointer;
+    }
+    .color-btn.active{border-color:#edf2f7}
+    .modal-actions{
+      display:flex;justify-content:flex-end;gap:10px;margin-top:16px;
+    }
+    .loading{padding:34px 18px; color:var(--muted); text-align:center}
+
+    @media (max-width: 980px){
+      body{overflow:auto}
+      .app{height:auto; min-height:100vh}
+      .topbar{grid-template-columns:1fr}
+      .summary{grid-template-columns:repeat(2,1fr)}
+      .layout{grid-template-columns:1fr}
+      .sidebar{order:2}
+      .calendar-panel{order:1}
+      .sidebar,.calendar-panel{overflow:visible}
+    }
+    @media (max-width: 720px){
+      .app{padding:12px}
+      .hero h1{font-size:30px}
+      .calendar-top{flex-direction:column}
+      .weekday-row,.calendar-grid{gap:6px}
+      .weekday{
+        border-radius:12px;
+        padding:9px 4px;
+        font-size:10px;
+      }
+      .day-cell{
+        min-height:76px;
+        border-radius:16px;
+        padding:10px;
+      }
+      .day-number{font-size:20px}
+      .metric{min-height:84px}
+      .metric .value{font-size:24px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <section class="hero">
+        <div class="eyebrow">Zincirini Kırma</div>
+        <h1>Tek takvim, koyu tema, net akış.</h1>
+        <p>14 inç laptop ekranına rahat sığacak şekilde düzenlendi. Takvimde günlerin içindeki işaretler artık nokta değil, çizgi. Böylece devam eden alışkanlıklar daha akıcı ve bağlı görünüyor.</p>
+      </section>
+
+      <section class="summary">
+        <div class="metric"><div class="label">Toplam alışkanlık</div><div class="value" id="metricTotal">0</div></div>
+        <div class="metric"><div class="label">Seçili günde tamamlanan</div><div class="value" id="metricSelectedDone">0</div></div>
+        <div class="metric"><div class="label">Bugün tamamlanan</div><div class="value" id="metricTodayDone">0</div></div>
+        <div class="metric"><div class="label">En iyi seri</div><div class="value" id="metricBest">0</div></div>
+      </section>
+    </div>
+
+    <div class="layout">
+      <aside class="panel sidebar">
+        <div class="date-switcher">
+          <button class="arrow-btn" id="prevDayBtn" aria-label="Önceki gün">‹</button>
+          <div class="date-center">
+            <div class="date-label">Bugün sekmesi</div>
+            <div class="date-title" id="selectedDateTitle">Bugün</div>
+            <div class="date-sub" id="selectedDateSub"></div>
+          </div>
+          <button class="arrow-btn" id="nextDayBtn" aria-label="Sonraki gün">›</button>
+        </div>
+
+        <div class="sidebar-head">
+          <div class="sidebar-title">Alışkanlıklar</div>
+          <button class="primary-btn" id="openModalBtn">+ Yeni</button>
+        </div>
+
+        <div class="habit-list" id="habitList">
+          <div class="loading">Yükleniyor...</div>
+        </div>
+      </aside>
+
+      <main class="panel calendar-panel">
+        <div class="calendar-top">
+          <div class="calendar-title">
+            <h2 id="monthTitle">Ay görünümü</h2>
+            <p>Her gün kutusunda o güne ait tamamlanan alışkanlıklar renkli çizgilerle gösterilir.</p>
+          </div>
+          <div class="calendar-controls">
+            <button class="month-btn" id="prevMonthBtn">‹</button>
+            <button class="month-btn" id="thisMonthBtn">Bu ay</button>
+            <button class="month-btn" id="nextMonthBtn">›</button>
+          </div>
+        </div>
+
+        <div class="weekday-row" id="weekdayRow"></div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="legend" id="legend"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <h3>Yeni alışkanlık ekle</h3>
+      <div class="field">
+        <label for="habitNameInput">Alışkanlık adı</label>
+        <input id="habitNameInput" type="text" placeholder="Örn. Kitap oku" />
+      </div>
+      <div class="field">
+        <label for="habitNoteInput">Not</label>
+        <input id="habitNoteInput" type="text" placeholder="Örn. 20 sayfa" />
+      </div>
+      <div class="field">
+        <label>Renk</label>
+        <div class="color-row" id="colorRow"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="ghost-btn" id="closeModalBtn">Vazgeç</button>
+        <button class="primary-btn" id="saveHabitBtn">Ekle</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbz1aKhGVIeXewPQZYHF2uN_dXYTPtlP7PYT08sXS5mrBMstJV2BpuDtBHIDaLRiBp1x/exec";
+    const API_KEY = "hfk04";
+    const COLORS = ["#ef4444","#0ea5e9","#10b981","#f59e0b","#8b5cf6","#d946ef","#14b8a6","#f97316","#84cc16","#e11d48"];
+    const WEEKDAYS = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+
+    const state = {
+      habits: [],
+      completions: {},
+      selectedDate: toLocalDateString(new Date()),
+      selectedMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      newHabitColorIdx: 0,
+    };
+
+    const habitListEl = document.getElementById("habitList");
+    const calendarGridEl = document.getElementById("calendarGrid");
+    const weekdayRowEl = document.getElementById("weekdayRow");
+    const monthTitleEl = document.getElementById("monthTitle");
+    const selectedDateTitleEl = document.getElementById("selectedDateTitle");
+    const selectedDateSubEl = document.getElementById("selectedDateSub");
+    const legendEl = document.getElementById("legend");
+
+    function toLocalDateString(date){
+      const y = date.getFullYear();
+      const m = String(date.getMonth()+1).padStart(2,"0");
+      const d = String(date.getDate()).padStart(2,"0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function fromDateString(s){
+      const [y,m,d] = s.split("-").map(Number);
+      return new Date(y, m-1, d);
+    }
+
+    function formatFullDate(s){
+      const date = fromDateString(s);
+      return date.toLocaleDateString("tr-TR", { day:"numeric", month:"long", year:"numeric" });
+    }
+
+    function formatWeekday(s){
+      const date = fromDateString(s);
+      return date.toLocaleDateString("tr-TR", { weekday:"long" });
+    }
+
+    function moveSelectedDay(delta){
+      const d = fromDateString(state.selectedDate);
+      d.setDate(d.getDate()+delta);
+      state.selectedDate = toLocalDateString(d);
+      render();
+    }
+
+    function moveMonth(delta){
+      const d = new Date(state.selectedMonth);
+      d.setMonth(d.getMonth()+delta);
+      state.selectedMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+      renderCalendar();
+    }
+
+    function createHabitId(){
+      return `habit_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+    }
+
+    function buildMonthGrid(baseDate){
+      const first = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+      const firstIndex = (first.getDay()+6)%7;
+      const start = new Date(first);
+      start.setDate(first.getDate()-firstIndex);
+      const days = [];
+      for(let i=0;i<42;i++){
+        const d = new Date(start);
+        d.setDate(start.getDate()+i);
+        days.push(d);
+      }
+      return days;
+    }
+
+    function calculateBestStreak(dates){
+      if(!dates || !dates.length) return 0;
+      const sorted = [...new Set(dates)].sort();
+      let best = 1, current = 1;
+      for(let i=1;i<sorted.length;i++){
+        const prev = fromDateString(sorted[i-1]);
+        const curr = fromDateString(sorted[i]);
+        const diff = Math.round((curr - prev) / 86400000);
+        if(diff === 1){
+          current++;
+          if(current > best) best = current;
+        } else current = 1;
+      }
+      return best;
+    }
+
+    function selectedDateCompletionCount(){
+      return state.habits.filter(h => (state.completions[String(h.id)] || []).includes(state.selectedDate)).length;
+    }
+
+    function todayCompletionCount(){
+      const today = toLocalDateString(new Date());
+      return state.habits.filter(h => (state.completions[String(h.id)] || []).includes(today)).length;
+    }
+
+    function bestOverallStreak(){
+      return state.habits.reduce((max, h) => Math.max(max, calculateBestStreak(state.completions[String(h.id)] || [])), 0);
+    }
+
+    async function apiGet(action, params = {}){
+      const query = new URLSearchParams({ action, ...params });
+      const res = await fetch(`${API_URL}?${query.toString()}`);
+      return res.json();
+    }
+
+    async function apiPost(action, body){
+      const res = await fetch(`${API_URL}?action=${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ ...body, apiKey: API_KEY })
+      });
+      return res.json();
+    }
+
+    function getHabitColor(habit){
+      return COLORS[(Number(habit.colorIdx) || 0) % COLORS.length];
+    }
+
+    function isDoneOnDate(habit, dateKey){
+      return (state.completions[String(habit.id)] || []).includes(dateKey);
+    }
+
+    async function loadData(){
+      habitListEl.innerHTML = '<div class="loading">Yükleniyor...</div>';
+      try{
+        const [habitsRes, completionsRes] = await Promise.all([
+          apiGet("getHabits"),
+          apiGet("getCompletions")
+        ]);
+        state.habits = habitsRes.habits || [];
+        state.completions = completionsRes.completions || {};
+        render();
+      }catch(err){
+        console.error(err);
+        habitListEl.innerHTML = '<div class="empty">Veriler alınamadı.</div>';
+        alert("Veriler alınamadı.");
+      }
+    }
+
+    async function toggleHabitForSelectedDate(habit){
+      try{
+        const result = await apiPost("toggleCompletion", {
+          habitId: habit.id,
+          date: state.selectedDate
+        });
+        if(result.error){
+          alert(result.error);
+          return;
+        }
+        const key = String(habit.id);
+        const arr = new Set(state.completions[key] || []);
+        if(arr.has(state.selectedDate)) arr.delete(state.selectedDate);
+        else arr.add(state.selectedDate);
+        state.completions[key] = [...arr].sort();
+        render();
+      }catch(err){
+        console.error(err);
+        alert("İşlem yapılamadı.");
+      }
+    }
+
+    async function deleteHabit(habit){
+      if(!confirm(`"${habit.name}" silinsin mi?`)) return;
+      try{
+        const result = await apiGet("deleteHabit", { id: habit.id, apiKey: API_KEY });
+        if(result.error){
+          alert(result.error);
+          return;
+        }
+        state.habits = state.habits.filter(h => String(h.id) !== String(habit.id));
+        delete state.completions[String(habit.id)];
+        render();
+      }catch(err){
+        console.error(err);
+        alert("Alışkanlık silinemedi.");
+      }
+    }
+
+    function renderWeekdays(){
+      weekdayRowEl.innerHTML = WEEKDAYS.map(day => `<div class="weekday">${day}</div>`).join("");
+    }
+
+    function renderSummary(){
+      document.getElementById("metricTotal").textContent = state.habits.length;
+      document.getElementById("metricSelectedDone").textContent = selectedDateCompletionCount();
+      document.getElementById("metricTodayDone").textContent = todayCompletionCount();
+      document.getElementById("metricBest").textContent = bestOverallStreak();
+    }
+
+    function renderSelectedDateHeader(){
+      const today = toLocalDateString(new Date());
+      selectedDateTitleEl.textContent = state.selectedDate === today ? "Bugün" : formatFullDate(state.selectedDate);
+      const weekday = formatWeekday(state.selectedDate);
+      selectedDateSubEl.textContent = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    }
+
+    function renderHabits(){
+      if(!state.habits.length){
+        habitListEl.innerHTML = '<div class="empty">Henüz alışkanlık yok. “Yeni” butonuyla ekleyebilirsin.</div>';
+        return;
+      }
+      habitListEl.innerHTML = "";
+      state.habits.forEach((habit, index) => {
+        const done = isDoneOnDate(habit, state.selectedDate);
+        const color = getHabitColor(habit);
+        const row = document.createElement("div");
+        row.className = `habit-row ${done ? "done" : ""}`;
+        row.innerHTML = `
+          <button class="habit-check ${index % 2 === 0 ? "" : "square"}" aria-label="Tamamlandı işareti">${done ? "✓" : ""}</button>
+          <div class="habit-main">
+            <div class="habit-name">${escapeHtml(habit.name || "")}</div>
+            <div class="habit-note">${escapeHtml(habit.note || "Not yok")}</div>
+          </div>
+          <div class="habit-meta">
+            <div class="color-pill"></div>
+            <button class="delete-btn" aria-label="Sil">×</button>
+          </div>
+        `;
+        const check = row.querySelector(".habit-check");
+        const pill = row.querySelector(".color-pill");
+        pill.style.background = color;
+        if(done) check.style.background = color;
+
+        check.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          await toggleHabitForSelectedDate(habit);
+        });
+        row.querySelector(".delete-btn").addEventListener("click", async (e) => {
+          e.stopPropagation();
+          await deleteHabit(habit);
+        });
+        habitListEl.appendChild(row);
+      });
+    }
+
+    function renderLegend(){
+      if(!state.habits.length){
+        legendEl.innerHTML = "";
+        return;
+      }
+      legendEl.innerHTML = state.habits.map(h => `
+        <div class="legend-item">
+          <span class="legend-line" style="background:${getHabitColor(h)}"></span>
+          <span>${escapeHtml(h.name || "")}</span>
+        </div>
+      `).join("");
+    }
+
+    function getCompletedHabitsOnDate(dateKey){
+      return state.habits.filter(h => isDoneOnDate(h, dateKey));
+    }
+
+    function renderCalendar(){
+      monthTitleEl.textContent = state.selectedMonth.toLocaleDateString("tr-TR", { month:"long", year:"numeric" });
+      const days = buildMonthGrid(state.selectedMonth);
+      calendarGridEl.innerHTML = "";
+
+      days.forEach(date => {
+        const dateKey = toLocalDateString(date);
+        const otherMonth = date.getMonth() !== state.selectedMonth.getMonth();
+        const selectedDay = dateKey === state.selectedDate;
+        const today = dateKey === toLocalDateString(new Date());
+        const completedHabits = getCompletedHabitsOnDate(dateKey);
+
+        const cell = document.createElement("div");
+        cell.className = `day-cell ${otherMonth ? "other-month" : ""} ${selectedDay ? "selected-day" : ""} ${today ? "today" : ""}`;
+
+        const visible = completedHabits.slice(0, 4).map((h, idx) => {
+          const widths = [100, 78, 58, 40];
+          return `<span class="mark-line" style="background:${getHabitColor(h)}; width:${widths[idx] || 40}%"></span>`;
+        }).join("");
+
+        const extra = completedHabits.length > 4 ? `<span class="mark-more">+${completedHabits.length - 4}</span>` : "";
+
+        cell.innerHTML = `
+          <div class="day-number">${date.getDate()}</div>
+          <div class="day-lines">${visible}${extra}</div>
+        `;
+
+        cell.addEventListener("click", () => {
+          state.selectedDate = dateKey;
+          render();
+        });
+
+        calendarGridEl.appendChild(cell);
+      });
+    }
+
+    function render(){
+      renderSummary();
+      renderSelectedDateHeader();
+      renderHabits();
+      renderCalendar();
+      renderLegend();
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const habitNameInput = document.getElementById("habitNameInput");
+    const habitNoteInput = document.getElementById("habitNoteInput");
+    const colorRow = document.getElementById("colorRow");
+
+    function renderColorOptions(){
+      colorRow.innerHTML = "";
+      COLORS.forEach((color, index) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `color-btn ${state.newHabitColorIdx === index ? "active" : ""}`;
+        btn.style.background = color;
+        btn.addEventListener("click", () => {
+          state.newHabitColorIdx = index;
+          renderColorOptions();
+        });
+        colorRow.appendChild(btn);
+      });
+    }
+
+    function openModal(){
+      modalBackdrop.classList.add("open");
+      habitNameInput.focus();
+    }
+
+    function closeModal(){
+      modalBackdrop.classList.remove("open");
+      habitNameInput.value = "";
+      habitNoteInput.value = "";
+      state.newHabitColorIdx = 0;
+      renderColorOptions();
+    }
+
+    async function saveHabit(){
+      const name = habitNameInput.value.trim();
+      const note = habitNoteInput.value.trim();
+      if(!name){
+        alert("Alışkanlık adı gerekli.");
+        return;
+      }
+      try{
+        const result = await apiPost("addHabit", {
+          id: createHabitId(),
+          name,
+          note,
+          colorIdx: state.newHabitColorIdx
+        });
+        if(result.error){
+          alert(result.error);
+          return;
+        }
+        closeModal();
+        await loadData();
+      }catch(err){
+        console.error(err);
+        alert("Alışkanlık eklenemedi.");
+      }
+    }
+
+    document.getElementById("prevDayBtn").addEventListener("click", () => moveSelectedDay(-1));
+    document.getElementById("nextDayBtn").addEventListener("click", () => moveSelectedDay(1));
+    document.getElementById("prevMonthBtn").addEventListener("click", () => moveMonth(-1));
+    document.getElementById("nextMonthBtn").addEventListener("click", () => moveMonth(1));
+    document.getElementById("thisMonthBtn").addEventListener("click", () => {
+      const now = new Date();
+      state.selectedMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      renderCalendar();
+    });
+    document.getElementById("openModalBtn").addEventListener("click", openModal);
+    document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+    document.getElementById("saveHabitBtn").addEventListener("click", saveHabit);
+    modalBackdrop.addEventListener("click", (e) => {
+      if(e.target === modalBackdrop) closeModal();
+    });
+
+    renderWeekdays();
+    renderColorOptions();
+    loadData();
+  </script>
+</body>
+</html>
